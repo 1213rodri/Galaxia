@@ -13,7 +13,7 @@ const PARAMS = {
   randomnessPower:  3.2,
 
   // Central bulge
-  coreCount:        30000,
+  coreCount:        18000,
   coreRadius:       2.2,
 
   // Outer halo
@@ -68,11 +68,12 @@ export class Galaxy {
 
     const total = diskCount + coreCount + haloCount
 
-    const positions      = new Float32Array(total * 3)
-    const colors         = new Float32Array(total * 3)
-    const sizes          = new Float32Array(total)
-    const twinkleSpeeds  = new Float32Array(total)
-    const twinkleOffsets = new Float32Array(total)
+    const positions       = new Float32Array(total * 3)
+    const colors          = new Float32Array(total * 3)
+    const sizes           = new Float32Array(total)
+    const twinkleSpeeds   = new Float32Array(total)
+    const twinkleOffsets  = new Float32Array(total)
+    const spikeIntensities = new Float32Array(total)
 
     const colorA = new THREE.Color(innerColor)
     const colorB = new THREE.Color(outerColor)
@@ -113,10 +114,12 @@ export class Galaxy {
       colors[i * 3 + 1] = temp.g
       colors[i * 3 + 2] = temp.b
 
-      // 2% chance of a large "bright" star
-      sizes[i]         = Math.random() < 0.02 ? _rand(2.5, 5) : _rand(0.4, 1.6)
-      twinkleSpeeds[i] = _rand(0.4, 2.5)
-      twinkleOffsets[i]= Math.random() * Math.PI * 2
+      // 2% bright stars — larger, with diffraction spikes
+      const isBright = Math.random() < 0.02
+      sizes[i]            = isBright ? _rand(7, 13) : _rand(0.4, 1.6)
+      spikeIntensities[i] = isBright ? _rand(0.7, 1.0) : 0.0
+      twinkleSpeeds[i]    = _rand(0.4, 2.5)
+      twinkleOffsets[i]   = Math.random() * Math.PI * 2
     }
 
     // ── Core / bulge: warm dense center ──────────────────────────────────────
@@ -164,11 +167,12 @@ export class Galaxy {
 
     // ── Build geometry & material ─────────────────────────────────────────────
     const geo = new THREE.BufferGeometry()
-    geo.setAttribute('position',      new THREE.BufferAttribute(positions,      3))
-    geo.setAttribute('aColor',        new THREE.BufferAttribute(colors,         3))
-    geo.setAttribute('aSize',         new THREE.BufferAttribute(sizes,          1))
-    geo.setAttribute('aTwinkleSpeed', new THREE.BufferAttribute(twinkleSpeeds,  1))
-    geo.setAttribute('aTwinkleOffset',new THREE.BufferAttribute(twinkleOffsets, 1))
+    geo.setAttribute('position',        new THREE.BufferAttribute(positions,       3))
+    geo.setAttribute('aColor',          new THREE.BufferAttribute(colors,          3))
+    geo.setAttribute('aSize',           new THREE.BufferAttribute(sizes,           1))
+    geo.setAttribute('aTwinkleSpeed',   new THREE.BufferAttribute(twinkleSpeeds,   1))
+    geo.setAttribute('aTwinkleOffset',  new THREE.BufferAttribute(twinkleOffsets,  1))
+    geo.setAttribute('aSpikeIntensity', new THREE.BufferAttribute(spikeIntensities,1))
 
     this._material = new THREE.ShaderMaterial({
       vertexShader:   vertShader,

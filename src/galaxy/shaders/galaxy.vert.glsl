@@ -6,9 +6,11 @@ attribute float aSize;
 attribute vec3 aColor;
 attribute float aTwinkleSpeed;
 attribute float aTwinkleOffset;
+attribute float aSpikeIntensity;
 
 varying vec3 vColor;
 varying float vAlpha;
+varying float vSpikeIntensity;
 
 void main() {
   vec4 modelPosition = modelMatrix * vec4(position, 1.0);
@@ -22,7 +24,8 @@ void main() {
 
   // Perspective-correct size with pixel ratio
   gl_PointSize = uSize * aSize * uPixelRatio * (1.0 / -viewPosition.z);
-  gl_PointSize = clamp(gl_PointSize, 0.5, 180.0);
+  gl_PointSize = clamp(gl_PointSize, 0.5, 80.0);
 
   vColor = aColor;
+  vSpikeIntensity = aSpikeIntensity;
 }

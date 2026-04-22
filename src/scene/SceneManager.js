@@ -42,9 +42,9 @@ export class SceneManager {
     // Bloom — makes stars glow beautifully
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      1.6,   // strength
-      0.45,  // radius
-      0.05   // threshold (low = even dim stars glow)
+      0.1,   // strength
+      0.35,  // radius
+      0.38   // threshold (higher = only bright stars bloom)
     )
     this._composer.addPass(bloomPass)
     this._bloomPass = bloomPass
