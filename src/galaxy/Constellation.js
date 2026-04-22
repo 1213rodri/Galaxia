@@ -77,7 +77,7 @@ export class Constellation {
   }
 
   _fadeIn() {
-    const delay = 9
+    const delay = 19
 
     this._starMats.forEach(m =>
       gsap.to(m, { opacity: 0.9, duration: 3, delay, ease: 'power2.inOut' })

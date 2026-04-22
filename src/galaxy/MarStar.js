@@ -113,7 +113,7 @@ export class MarStar {
     this._labelGroup.add(new THREE.Mesh(geo, this._labelMat))
 
     // Fade in after galaxy label appears
-    gsap.to(this._labelMat, { opacity: 1, duration: 2, delay: 8, ease: 'power2.inOut' })
+    gsap.to(this._labelMat, { opacity: 1, duration: 2, delay: 18, ease: 'power2.inOut' })
   }
 
   // ── Click overlay HTML ──────────────────────────────────────────────────────

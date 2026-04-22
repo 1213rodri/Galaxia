@@ -32,23 +32,22 @@ export class CameraManager {
   }
 
   _playIntro() {
+    const D = 10 // intro screen duration before camera starts
+
     // Phase 1: fly toward the galaxy from far away
     gsap.to(this.camera.position, {
-      x: 0,
-      y: 0,
-      z: 30,
+      x: 0, y: 0, z: 30,
       duration: 2.5,
+      delay: D,
       ease: 'power2.in',
       onUpdate: () => this.camera.lookAt(0, 0, 0),
     })
 
     // Phase 2: arc to a beautiful 3/4 angle view
     gsap.to(this.camera.position, {
-      x: 14,
-      y: 9,
-      z: 22,
+      x: 14, y: 9, z: 22,
       duration: 3,
-      delay: 2.5,
+      delay: D + 2.5,
       ease: 'power2.inOut',
       onUpdate: () => this.camera.lookAt(0, 0, 0),
       onComplete: () => {

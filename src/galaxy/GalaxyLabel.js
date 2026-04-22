@@ -70,9 +70,9 @@ export class GalaxyLabel {
     this.group.add(subMesh)
 
     // ── Fade in after camera intro ────────────────────────────────────────────
-    gsap.to(this._titleMat, { opacity: 1,    duration: 2.5, delay: 6.5, ease: 'power2.inOut' })
-    gsap.to(this._lineMat,  { opacity: 0.7,  duration: 2.0, delay: 7.0, ease: 'power2.inOut' })
-    gsap.to(this._subMat,   { opacity: 0.65, duration: 2.5, delay: 7.3, ease: 'power2.inOut' })
+    gsap.to(this._titleMat, { opacity: 1,    duration: 2.5, delay: 16.5, ease: 'power2.inOut' })
+    gsap.to(this._lineMat,  { opacity: 0.7,  duration: 2.0, delay: 17.0, ease: 'power2.inOut' })
+    gsap.to(this._subMat,   { opacity: 0.65, duration: 2.5, delay: 17.3, ease: 'power2.inOut' })
   }
 
   // Call every frame — makes the label always face the camera (billboard)

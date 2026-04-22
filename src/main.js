@@ -10,6 +10,7 @@ import { ShootingStars }  from './galaxy/ShootingStars.js'
 import { Comet }          from './galaxy/Comet.js'
 import { LensFlares }     from './galaxy/LensFlares.js'
 import { AudioManager }   from './audio/AudioManager.js'
+import { IntroScreen }    from './ui/IntroScreen.js'
 
 const canvas = document.getElementById('galaxy-canvas')
 
@@ -23,6 +24,7 @@ const shootingStars  = new ShootingStars(sceneManager.scene)
 const comet          = new Comet(sceneManager.scene)
 new LensFlares(sceneManager.scene)
 new AudioManager()
+new IntroScreen()
 
 sceneManager.setCamera(cameraManager.camera)
 
