@@ -23,8 +23,8 @@ const constellation  = new Constellation(sceneManager.scene)
 const shootingStars  = new ShootingStars(sceneManager.scene)
 const comet          = new Comet(sceneManager.scene)
 new LensFlares(sceneManager.scene)
-new AudioManager()
-new IntroScreen()
+const audio = new AudioManager()
+new IntroScreen(audio)
 
 sceneManager.setCamera(cameraManager.camera)
 

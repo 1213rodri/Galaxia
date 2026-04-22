@@ -1,7 +1,8 @@
 import gsap from 'gsap'
 
 export class IntroScreen {
-  constructor() {
+  constructor(audioManager) {
+    this._audio = audioManager
     this._build()
     this._animate()
   }
@@ -30,6 +31,11 @@ export class IntroScreen {
     `
     document.body.appendChild(this._el)
 
+    // Start audio on first interaction with the intro screen
+    this._el.addEventListener('click', () => {
+      if (this._audio) this._audio.start()
+    }, { once: true })
+
     // ── Styles ────────────────────────────────────────────────────────────────
     const style = document.createElement('style')
     style.textContent = `
@@ -38,7 +44,7 @@ export class IntroScreen {
         background: #000008;
         display: flex; align-items: center; justify-content: center;
         z-index: 200;
-        pointer-events: none;
+        pointer-events: all;
       }
 
       .intro-inner {

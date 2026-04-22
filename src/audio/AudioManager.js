@@ -1,56 +1,36 @@
-import gsap from 'gsap'
-
-const MUSIC_SRC    = '/music/rosalina.mp3'
-const TARGET_VOL   = 0.45   // max volume (0-1)
-const FADE_IN_SEC  = 4      // seconds to fade from 0 to TARGET_VOL
-const FADE_DELAY   = 1      // seconds before fade starts
+const MUSIC_SRC  = '/music/rosalina.mp3'
+const TARGET_VOL = 0.45
+const FADE_STEPS = 80
+const FADE_MS    = 4000  // total fade duration in ms
 
 export class AudioManager {
   constructor() {
     this._audio = new Audio(MUSIC_SRC)
-    this._audio.loop   = true     // repeat forever
-    this._audio.volume = 0
+    this._audio.loop    = true
+    this._audio.volume  = 0
     this._audio.preload = 'auto'
-
     this._started = false
-    this._tryAutoplay()
   }
 
-  _tryAutoplay() {
-    const play = () => {
-      if (this._started) return
-      this._started = true
+  // Call this from a direct user interaction (click handler)
+  start() {
+    if (this._started) return
+    this._started = true
 
-      this._audio.play().then(() => {
-        this._fadeIn()
-      }).catch(() => {
-        // Autoplay blocked — wait for first user interaction
-        this._started = false
-      })
-    }
-
-    // Try immediately
-    play()
-
-    // Fallback: start on first interaction
-    const onInteract = () => {
-      play()
-      window.removeEventListener('click',    onInteract)
-      window.removeEventListener('keydown',  onInteract)
-      window.removeEventListener('touchstart', onInteract)
-    }
-
-    window.addEventListener('click',     onInteract)
-    window.addEventListener('keydown',   onInteract)
-    window.addEventListener('touchstart',onInteract)
+    this._audio.play()
+      .then(() => this._fadeIn())
+      .catch(err => console.warn('Audio blocked:', err))
   }
 
   _fadeIn() {
-    gsap.to(this._audio, {
-      volume:   TARGET_VOL,
-      duration: FADE_IN_SEC,
-      delay:    FADE_DELAY,
-      ease:     'power2.inOut',
-    })
+    const stepVol  = TARGET_VOL / FADE_STEPS
+    const stepTime = FADE_MS / FADE_STEPS
+    let step = 0
+
+    const tick = setInterval(() => {
+      step++
+      this._audio.volume = Math.min(stepVol * step, TARGET_VOL)
+      if (step >= FADE_STEPS) clearInterval(tick)
+    }, stepTime)
   }
 }
