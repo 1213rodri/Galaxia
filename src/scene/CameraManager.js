@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import gsap from 'gsap'
 
 const SOLAR_TRIGGER_DIST  = 2.5  // distance from center that triggers solar transition
-const GALAXY_RETURN_DIST  = 80   // distance from solar origin that triggers return to galaxy
+const GALAXY_RETURN_DIST  = 32   // distance from solar origin that triggers return to galaxy
 
 export class CameraManager {
   constructor(canvas) {
@@ -72,7 +72,7 @@ export class CameraManager {
   enterSolarMode() {
     this._mode = 'solar'
     this.controls.minDistance = 1
-    this.controls.maxDistance = 40
+    this.controls.maxDistance = 50  // must be > GALAXY_RETURN_DIST so user can reach it
     this.controls.target.set(0, 0, 0)
     this.camera.position.set(0, 4, 18)
     this.camera.lookAt(0, 0, 0)
