@@ -9,11 +9,13 @@ const PLANETS = [
     name: 'Mercury', radius: 1.1,  distance: 10,  speed: 4.15,
     tex: '/textures/planets/mercury.jpg',
     roughness: 0.9, metalness: 0.0,
+    emissive: 0x332211, emissiveIntensity: 0.25,
   },
   {
     name: 'Venus',   radius: 1.9,  distance: 18,  speed: 1.62,
     tex: '/textures/planets/venus.jpg',
     roughness: 0.8, metalness: 0.0,
+    emissive: 0x553300, emissiveIntensity: 0.3,
     atmosphere: { color: new THREE.Color(0xffe090), opacity: 0.25 },
   },
   {
@@ -21,6 +23,7 @@ const PLANETS = [
     tex:    '/textures/planets/earth.jpg',
     clouds: '/textures/planets/earth_clouds.jpg',
     roughness: 0.6, metalness: 0.1,
+    emissive: 0x001133, emissiveIntensity: 0.35,
     atmosphere: { color: new THREE.Color(0x4488ff), opacity: 0.35 },
     moon: true,
   },
@@ -28,29 +31,34 @@ const PLANETS = [
     name: 'Mars',    radius: 1.4,  distance: 38,  speed: 0.53,
     tex: '/textures/planets/mars.jpg',
     roughness: 0.95, metalness: 0.0,
+    emissive: 0x331100, emissiveIntensity: 0.3,
     atmosphere: { color: new THREE.Color(0xff6633), opacity: 0.12 },
   },
   {
     name: 'Jupiter', radius: 5.0,  distance: 58,  speed: 0.084,
     tex: '/textures/planets/jupiter.jpg',
     roughness: 0.7, metalness: 0.0,
+    emissive: 0x221100, emissiveIntensity: 0.2,
   },
   {
     name: 'Saturn',  radius: 4.2,  distance: 80,  speed: 0.034,
     tex: '/textures/planets/saturn.jpg',
     roughness: 0.7, metalness: 0.0,
+    emissive: 0x221a00, emissiveIntensity: 0.2,
     rings: true,
   },
   {
     name: 'Uranus',  radius: 2.5,  distance: 100, speed: 0.012,
     tex: '/textures/planets/uranus.jpg',
     roughness: 0.5, metalness: 0.0,
+    emissive: 0x003333, emissiveIntensity: 0.3,
     atmosphere: { color: new THREE.Color(0x88eeff), opacity: 0.18 },
   },
   {
     name: 'Neptune', radius: 2.2,  distance: 118, speed: 0.006,
     tex: '/textures/planets/neptune.jpg',
     roughness: 0.5, metalness: 0.0,
+    emissive: 0x000833, emissiveIntensity: 0.35,
     atmosphere: { color: new THREE.Color(0x3355ff), opacity: 0.2 },
   },
 ]
@@ -183,10 +191,10 @@ export class SolarSystem {
 
     // Corona halos — additive blending spheres
     const halos = [
-      { r: 4.8,  opacity: 0.14, color: 0xffcc44 },
-      { r: 6.0,  opacity: 0.08, color: 0xff9922 },
-      { r: 7.5,  opacity: 0.04, color: 0xff6600 },
-      { r: 9.5,  opacity: 0.02, color: 0xff4400 },
+      { r: 4.8,  opacity: 0.08, color: 0xffcc44 },
+      { r: 6.0,  opacity: 0.045, color: 0xff9922 },
+      { r: 7.5,  opacity: 0.022, color: 0xff6600 },
+      { r: 9.5,  opacity: 0.010, color: 0xff4400 },
     ]
     halos.forEach(h => {
       const m = new THREE.MeshBasicMaterial({
@@ -200,8 +208,8 @@ export class SolarSystem {
       this._group.add(new THREE.Mesh(new THREE.SphereGeometry(h.r, 32, 32), m))
     })
 
-    // Point light from sun (reduced intensity)
-    const light = new THREE.PointLight(0xfff5cc, 3, 400)
+    // Point light from sun
+    const light = new THREE.PointLight(0xfff5cc, 1.8, 400)
     this._group.add(light)
 
     // Soft ambient so planet dark sides aren't pitch black
@@ -229,9 +237,11 @@ export class SolarSystem {
       // ── Planet body
       const tex = load(p.tex)
       const mat = new THREE.MeshStandardMaterial({
-        map:       tex,
-        roughness: p.roughness,
-        metalness: p.metalness,
+        map:               tex,
+        roughness:         p.roughness,
+        metalness:         p.metalness,
+        emissive:          new THREE.Color(p.emissive || 0x000000),
+        emissiveIntensity: p.emissiveIntensity || 0,
       })
       const mesh = new THREE.Mesh(new THREE.SphereGeometry(p.radius, 64, 64), mat)
       mesh.position.x = p.distance
