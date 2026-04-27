@@ -54,8 +54,8 @@ cameraManager.onEnterSolar = () => {
     setGalaxyVisible(false)
     solarSystem.show()
     cameraManager.enterSolarMode()
-    // Boost bloom so the Sun glows dramatically
-    sceneManager.setBloom(0.9, 0.6, 0.55)
+    // Subtle bloom for the Sun
+    sceneManager.setBloom(0.4, 0.5, 0.65)
 
     solarTransition.hide(() => {
       cameraManager.unlock()
