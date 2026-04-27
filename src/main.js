@@ -54,8 +54,15 @@ cameraManager.onEnterSolar = () => {
     setGalaxyVisible(false)
     solarSystem.show()
     cameraManager.enterSolarMode()
-    // Subtle bloom for sun and planet glow
     sceneManager.setBloom(0.25, 0.5, 0.55)
+
+    // Orbit around Earth
+    cameraManager.followTarget = () => solarSystem.getEarthPosition()
+    // Position camera near Earth
+    const earthPos = solarSystem.getEarthPosition()
+    cameraManager.camera.position.set(
+      earthPos.x, earthPos.y + 8, earthPos.z + 20
+    )
 
     solarTransition.hide(() => {
       cameraManager.unlock()
@@ -67,6 +74,7 @@ cameraManager.onExitSolar = () => {
   solarTransition.show('Regresando a la galaxia...', () => {
     solarSystem.hide()
     setGalaxyVisible(true)
+    cameraManager.followTarget = null
     cameraManager.enterGalaxyMode()
     // Restore galaxy bloom
     sceneManager.setBloom(0.1, 0.35, 0.38)

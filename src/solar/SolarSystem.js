@@ -23,7 +23,7 @@ const PLANETS = [
     tex:    '/textures/planets/earth.jpg',
     clouds: '/textures/planets/earth_clouds.jpg',
     roughness: 0.6, metalness: 0.1,
-    emissive: 0x001133, emissiveIntensity: 0.35,
+    emissive: 0x001133, emissiveIntensity: 0.7,
     atmosphere: { color: new THREE.Color(0x4488ff), opacity: 0.35 },
     moon: true,
   },
@@ -213,10 +213,10 @@ export class SolarSystem {
     this._group.add(light)
 
     // Ambient so dark sides aren't pitch black
-    this._group.add(new THREE.AmbientLight(0x334466, 2.2))
+    this._group.add(new THREE.AmbientLight(0x334466, 3.5))
 
     // Soft fill light from the opposite side (simulates scattered light)
-    const fill = new THREE.DirectionalLight(0x223355, 0.6)
+    const fill = new THREE.DirectionalLight(0x223355, 1.4)
     fill.position.set(-50, 20, -50)
     this._group.add(fill)
   }
@@ -252,6 +252,8 @@ export class SolarSystem {
       mesh.position.x = p.distance
       mesh.rotation.y = Math.random() * Math.PI * 2
       pivot.add(mesh)
+
+      if (p.name === 'Earth') this._earthMesh = mesh
 
       // ── Earth cloud layer
       if (p.clouds) {
@@ -350,6 +352,12 @@ export class SolarSystem {
   show()            { this._group.visible = true  }
   hide()            { this._group.visible = false }
   setVisible(v)     { this._group.visible = v     }
+
+  getEarthPosition() {
+    const pos = new THREE.Vector3()
+    if (this._earthMesh) this._earthMesh.getWorldPosition(pos)
+    return pos
+  }
 
   update(elapsed) {
     if (!this._group.visible) return

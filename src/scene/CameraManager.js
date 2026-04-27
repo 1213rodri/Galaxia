@@ -12,6 +12,7 @@ export class CameraManager {
     this._locked       = false      // true during transitions
     this.onEnterSolar  = null       // callback set by main.js
     this.onExitSolar   = null       // callback set by main.js
+    this.followTarget  = null       // () => Vector3 — dynamic orbit target
 
     this.camera = new THREE.PerspectiveCamera(
       60,
@@ -94,6 +95,12 @@ export class CameraManager {
     if (!this.introComplete) {
       this.camera.lookAt(0, 0, 0)
       return
+    }
+
+    // Follow dynamic target (e.g. Earth) in solar mode
+    if (this._mode === 'solar' && this.followTarget) {
+      const pos = this.followTarget()
+      this.controls.target.copy(pos)
     }
 
     this.controls.update()
