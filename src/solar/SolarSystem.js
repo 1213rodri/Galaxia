@@ -368,12 +368,12 @@ export class SolarSystem {
 
     // Planets orbit + self-rotation
     this._pivots.forEach(({ pivot, mesh, speed }) => {
-      pivot.rotation.y += speed * 0.004
-      mesh.rotation.y  += speed * 0.008
+      pivot.rotation.y += speed * 0.001
+      mesh.rotation.y  += speed * 0.002
     })
 
     // Clouds rotate slightly faster than planet
-    this._clouds.forEach(c => { c.rotation.y += 0.0004 })
+    this._clouds.forEach(c => { c.rotation.y += 0.0001 })
 
     // Moon
     if (this._moonPivot) this._moonPivot.rotation.y += 0.015
