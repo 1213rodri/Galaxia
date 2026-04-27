@@ -59,6 +59,11 @@ export class Comet {
     scene.add(this._head)
   }
 
+  setVisible(v) {
+    this._trail.visible = v
+    this._head.visible  = v
+  }
+
   update(elapsed) {
     // Update head
     const headPos = this._pos(elapsed)

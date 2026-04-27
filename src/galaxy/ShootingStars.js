@@ -119,4 +119,12 @@ export class ShootingStars {
       }
     }
   }
+
+  setVisible(v) {
+    this._pool.forEach(s => {
+      if (!v) s.line.visible = false
+      s.active = false
+    })
+    this._hidden = !v
+  }
 }
