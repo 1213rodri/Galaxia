@@ -6,18 +6,18 @@ const load = path => T.load(path)
 // ── Planet data ───────────────────────────────────────────────────────────────
 const PLANETS = [
   {
-    name: 'Mercury', radius: 0.16, distance: 3.5, speed: 4.15,
+    name: 'Mercury', radius: 0.38, distance: 5.0, speed: 4.15,
     tex: '/textures/planets/mercury.jpg',
     roughness: 0.9, metalness: 0.0,
   },
   {
-    name: 'Venus', radius: 0.28, distance: 5.2, speed: 1.62,
+    name: 'Venus', radius: 0.65, distance: 8.0, speed: 1.62,
     tex: '/textures/planets/venus.jpg',
     roughness: 0.8, metalness: 0.0,
     atmosphere: { color: new THREE.Color(0xffe090), opacity: 0.25 },
   },
   {
-    name: 'Earth', radius: 0.30, distance: 7.0, speed: 1.00,
+    name: 'Earth', radius: 0.70, distance: 11.5, speed: 1.00,
     tex:    '/textures/planets/earth.jpg',
     clouds: '/textures/planets/earth_clouds.jpg',
     roughness: 0.6, metalness: 0.1,
@@ -25,30 +25,30 @@ const PLANETS = [
     moon: true,
   },
   {
-    name: 'Mars', radius: 0.20, distance: 9.5, speed: 0.53,
+    name: 'Mars', radius: 0.48, distance: 16.0, speed: 0.53,
     tex: '/textures/planets/mars.jpg',
     roughness: 0.95, metalness: 0.0,
     atmosphere: { color: new THREE.Color(0xff6633), opacity: 0.12 },
   },
   {
-    name: 'Jupiter', radius: 0.90, distance: 14.0, speed: 0.084,
+    name: 'Jupiter', radius: 2.0, distance: 24.0, speed: 0.084,
     tex: '/textures/planets/jupiter.jpg',
     roughness: 0.7, metalness: 0.0,
   },
   {
-    name: 'Saturn', radius: 0.75, distance: 19.0, speed: 0.034,
+    name: 'Saturn', radius: 1.7, distance: 34.0, speed: 0.034,
     tex: '/textures/planets/saturn.jpg',
     roughness: 0.7, metalness: 0.0,
     rings: true,
   },
   {
-    name: 'Uranus', radius: 0.42, distance: 23.5, speed: 0.012,
+    name: 'Uranus', radius: 1.0, distance: 43.0, speed: 0.012,
     tex: '/textures/planets/uranus.jpg',
     roughness: 0.5, metalness: 0.0,
     atmosphere: { color: new THREE.Color(0x88eeff), opacity: 0.18 },
   },
   {
-    name: 'Neptune', radius: 0.38, distance: 27.5, speed: 0.006,
+    name: 'Neptune', radius: 0.9, distance: 52.0, speed: 0.006,
     tex: '/textures/planets/neptune.jpg',
     roughness: 0.5, metalness: 0.0,
     atmosphere: { color: new THREE.Color(0x3355ff), opacity: 0.2 },
@@ -177,16 +177,16 @@ export class SolarSystem {
       fragmentShader: SUN_FRAG,
     })
 
-    const geo  = new THREE.SphereGeometry(1.2, 64, 64)
+    const geo  = new THREE.SphereGeometry(2.2, 64, 64)
     this._sunMesh = new THREE.Mesh(geo, mat)
     this._group.add(this._sunMesh)
 
     // Corona halos — additive blending spheres
     const halos = [
-      { r: 1.45, opacity: 0.18, color: 0xffcc44 },
-      { r: 1.80, opacity: 0.10, color: 0xff9922 },
-      { r: 2.30, opacity: 0.05, color: 0xff6600 },
-      { r: 3.00, opacity: 0.025, color: 0xff4400 },
+      { r: 2.65, opacity: 0.18, color: 0xffcc44 },
+      { r: 3.30, opacity: 0.10, color: 0xff9922 },
+      { r: 4.20, opacity: 0.05, color: 0xff6600 },
+      { r: 5.50, opacity: 0.025, color: 0xff4400 },
     ]
     halos.forEach(h => {
       const m = new THREE.MeshBasicMaterial({
