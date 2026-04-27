@@ -9,6 +9,12 @@ html, body {
   height: 100%;
   overflow: hidden;
   background: #000000;
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;
 }
 
 #galaxy-canvas {
