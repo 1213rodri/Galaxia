@@ -209,11 +209,16 @@ export class SolarSystem {
     })
 
     // Point light from sun
-    const light = new THREE.PointLight(0xfff5cc, 1.8, 400)
+    const light = new THREE.PointLight(0xfff5cc, 2.5, 400)
     this._group.add(light)
 
-    // Soft ambient so planet dark sides aren't pitch black
-    this._group.add(new THREE.AmbientLight(0x111133, 0.6))
+    // Ambient so dark sides aren't pitch black
+    this._group.add(new THREE.AmbientLight(0x334466, 2.2))
+
+    // Soft fill light from the opposite side (simulates scattered light)
+    const fill = new THREE.DirectionalLight(0x223355, 0.6)
+    fill.position.set(-50, 20, -50)
+    this._group.add(fill)
   }
 
   // ── Planets ────────────────────────────────────────────────────────────────
