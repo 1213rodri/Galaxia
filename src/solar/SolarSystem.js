@@ -253,24 +253,6 @@ export class SolarSystem {
       mesh.rotation.y = Math.random() * Math.PI * 2
       pivot.add(mesh)
 
-      // ── Atmosphere rim
-      if (p.atmosphere) {
-        const aGeo = new THREE.SphereGeometry(p.radius * 1.18, 32, 32)
-        const aMat = new THREE.ShaderMaterial({
-          uniforms: {
-            uColor:   { value: p.atmosphere.color },
-            uOpacity: { value: p.atmosphere.opacity },
-          },
-          vertexShader:   ATMO_VERT,
-          fragmentShader: ATMO_FRAG,
-          transparent:    true,
-          depthWrite:     false,
-          blending:       THREE.AdditiveBlending,
-          side:           THREE.FrontSide,
-        })
-        mesh.add(new THREE.Mesh(aGeo, aMat))
-      }
-
       // ── Earth cloud layer
       if (p.clouds) {
         const cloudTex = load(p.clouds)
