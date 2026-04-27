@@ -51,10 +51,11 @@ function setGalaxyVisible(v) {
 // ── State machine: galaxy ↔ solar ─────────────────────────────────────────────
 cameraManager.onEnterSolar = () => {
   solarTransition.show('Déjame llevarte a nuestro sistema solar...', () => {
-    // Switch scene
     setGalaxyVisible(false)
     solarSystem.show()
     cameraManager.enterSolarMode()
+    // Boost bloom so the Sun glows dramatically
+    sceneManager.setBloom(0.9, 0.6, 0.55)
 
     solarTransition.hide(() => {
       cameraManager.unlock()
@@ -67,6 +68,8 @@ cameraManager.onExitSolar = () => {
     solarSystem.hide()
     setGalaxyVisible(true)
     cameraManager.enterGalaxyMode()
+    // Restore galaxy bloom
+    sceneManager.setBloom(0.1, 0.35, 0.38)
 
     solarTransition.hide(() => {
       cameraManager.unlock()

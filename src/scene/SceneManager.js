@@ -53,6 +53,13 @@ export class SceneManager {
     this._composer.addPass(new OutputPass())
   }
 
+  setBloom(strength, radius, threshold) {
+    if (!this._bloomPass) return
+    this._bloomPass.strength  = strength
+    this._bloomPass.radius    = radius
+    this._bloomPass.threshold = threshold
+  }
+
   render() {
     if (this._composer) {
       this._composer.render()

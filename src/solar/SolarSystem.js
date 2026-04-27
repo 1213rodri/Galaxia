@@ -1,23 +1,158 @@
 import * as THREE from 'three'
 
-// Relative sizes and distances (not to scale, but proportional feel)
+const T = new THREE.TextureLoader()
+const load = path => T.load(path)
+
+// ── Planet data ───────────────────────────────────────────────────────────────
 const PLANETS = [
-  { name: 'Mercury', radius: 0.08, distance: 1.4,  speed: 4.15,  color: '#b5b5b5', emissive: '#222' },
-  { name: 'Venus',   radius: 0.15, distance: 2.0,  speed: 1.62,  color: '#e8cda0', emissive: '#3a2a00' },
-  { name: 'Earth',   radius: 0.16, distance: 2.8,  speed: 1.00,  color: '#4fa3e0', emissive: '#001a33' },
-  { name: 'Mars',    radius: 0.10, distance: 3.8,  speed: 0.53,  color: '#c1440e', emissive: '#1a0500' },
-  { name: 'Jupiter', radius: 0.45, distance: 6.0,  speed: 0.084, color: '#c88b3a', emissive: '#1a0a00' },
-  { name: 'Saturn',  radius: 0.38, distance: 8.5,  speed: 0.034, color: '#e4d191', emissive: '#1a1500' },
-  { name: 'Uranus',  radius: 0.22, distance: 11.0, speed: 0.012, color: '#7de8e8', emissive: '#003333' },
-  { name: 'Neptune', radius: 0.20, distance: 13.5, speed: 0.006, color: '#4b70dd', emissive: '#000a33' },
+  {
+    name: 'Mercury', radius: 0.09, distance: 2.0, speed: 4.15,
+    tex: '/textures/planets/mercury.jpg',
+    roughness: 0.9, metalness: 0.0,
+  },
+  {
+    name: 'Venus', radius: 0.16, distance: 2.9, speed: 1.62,
+    tex: '/textures/planets/venus.jpg',
+    roughness: 0.8, metalness: 0.0,
+    atmosphere: { color: new THREE.Color(0xffe090), opacity: 0.25 },
+  },
+  {
+    name: 'Earth', radius: 0.17, distance: 3.9, speed: 1.00,
+    tex:    '/textures/planets/earth.jpg',
+    clouds: '/textures/planets/earth_clouds.jpg',
+    roughness: 0.6, metalness: 0.1,
+    atmosphere: { color: new THREE.Color(0x4488ff), opacity: 0.35 },
+    moon: true,
+  },
+  {
+    name: 'Mars', radius: 0.11, distance: 5.2, speed: 0.53,
+    tex: '/textures/planets/mars.jpg',
+    roughness: 0.95, metalness: 0.0,
+    atmosphere: { color: new THREE.Color(0xff6633), opacity: 0.12 },
+  },
+  {
+    name: 'Jupiter', radius: 0.50, distance: 7.5, speed: 0.084,
+    tex: '/textures/planets/jupiter.jpg',
+    roughness: 0.7, metalness: 0.0,
+  },
+  {
+    name: 'Saturn', radius: 0.42, distance: 10.0, speed: 0.034,
+    tex: '/textures/planets/saturn.jpg',
+    roughness: 0.7, metalness: 0.0,
+    rings: true,
+  },
+  {
+    name: 'Uranus', radius: 0.24, distance: 12.8, speed: 0.012,
+    tex: '/textures/planets/uranus.jpg',
+    roughness: 0.5, metalness: 0.0,
+    atmosphere: { color: new THREE.Color(0x88eeff), opacity: 0.18 },
+  },
+  {
+    name: 'Neptune', radius: 0.22, distance: 15.0, speed: 0.006,
+    tex: '/textures/planets/neptune.jpg',
+    roughness: 0.5, metalness: 0.0,
+    atmosphere: { color: new THREE.Color(0x3355ff), opacity: 0.2 },
+  },
 ]
+
+// ── Atmosphere (Fresnel rim) shader ───────────────────────────────────────────
+const ATMO_VERT = `
+  varying vec3 vNormal;
+  varying vec3 vViewDir;
+  void main() {
+    vNormal  = normalize(normalMatrix * normal);
+    vec4 mvp = modelViewMatrix * vec4(position, 1.0);
+    vViewDir = normalize(-mvp.xyz);
+    gl_Position = projectionMatrix * mvp;
+  }
+`
+const ATMO_FRAG = `
+  uniform vec3  uColor;
+  uniform float uOpacity;
+  varying vec3  vNormal;
+  varying vec3  vViewDir;
+  void main() {
+    float rim = 1.0 - abs(dot(vNormal, vViewDir));
+    float a   = pow(rim, 2.5) * uOpacity;
+    gl_FragColor = vec4(uColor, a);
+  }
+`
+
+// ── Saturn ring canvas texture ────────────────────────────────────────────────
+function buildRingTexture() {
+  const size   = 512
+  const canvas = document.createElement('canvas')
+  canvas.width  = size
+  canvas.height = 1
+  const ctx = canvas.getContext('2d')
+  const grd = ctx.createLinearGradient(0, 0, size, 0)
+
+  // Transparent gap near planet, then bands
+  grd.addColorStop(0.00, 'rgba(0,0,0,0)')
+  grd.addColorStop(0.20, 'rgba(0,0,0,0)')
+  grd.addColorStop(0.22, 'rgba(210,190,130,0.55)')
+  grd.addColorStop(0.30, 'rgba(180,160,100,0.35)')
+  grd.addColorStop(0.38, 'rgba(220,200,140,0.65)')
+  grd.addColorStop(0.50, 'rgba(190,170,110,0.45)')
+  grd.addColorStop(0.62, 'rgba(215,195,135,0.6)')
+  grd.addColorStop(0.75, 'rgba(170,150,90,0.3)')
+  grd.addColorStop(0.88, 'rgba(200,180,120,0.2)')
+  grd.addColorStop(1.00, 'rgba(0,0,0,0)')
+
+  ctx.fillStyle = grd
+  ctx.fillRect(0, 0, size, 1)
+  return new THREE.CanvasTexture(canvas)
+}
+
+// ── Sun plasma shader ─────────────────────────────────────────────────────────
+const SUN_VERT = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+const SUN_FRAG = `
+  uniform sampler2D uTex;
+  uniform float     uTime;
+  varying vec2      vUv;
+
+  // Simple fbm noise
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float noise(vec2 p) {
+    vec2 i = floor(p); vec2 f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i),               hash(i + vec2(1,0)), u.x),
+               mix(hash(i + vec2(0,1)),   hash(i + vec2(1,1)), u.x), u.y);
+  }
+  float fbm(vec2 p) {
+    float v = 0.0; float a = 0.5;
+    for (int i = 0; i < 5; i++) { v += a * noise(p); p *= 2.0; a *= 0.5; }
+    return v;
+  }
+
+  void main() {
+    vec2  uv   = vUv;
+    float t    = uTime * 0.12;
+    float n    = fbm(uv * 3.0 + t);
+    float n2   = fbm(uv * 5.0 - t * 0.7 + n * 0.4);
+    vec4  base = texture2D(uTex, uv + n2 * 0.03);
+
+    // Enhance warmth and brightness
+    vec3  hot  = mix(vec3(1.0, 0.45, 0.05), vec3(1.0, 0.85, 0.3), n2);
+    vec3  col  = mix(base.rgb, hot, 0.45);
+    col       *= 1.6;                          // overall brightness
+    gl_FragColor = vec4(col, 1.0);
+  }
+`
 
 export class SolarSystem {
   constructor(scene) {
-    this._scene  = scene
-    this._group  = new THREE.Group()
-    this._pivots = []
-    this._rings  = []
+    this._scene   = scene
+    this._group   = new THREE.Group()
+    this._pivots  = []
+    this._clouds  = []
+    this._sunUni  = null
 
     scene.add(this._group)
     this._group.visible = false
@@ -27,141 +162,215 @@ export class SolarSystem {
     this._buildStarfield()
   }
 
+  // ── Sun ────────────────────────────────────────────────────────────────────
   _buildSun() {
-    // Sun glow (additive sphere)
-    const geo  = new THREE.SphereGeometry(0.6, 32, 32)
-    const mat  = new THREE.MeshStandardMaterial({
-      color:     0xffdd44,
-      emissive:  0xffaa00,
-      emissiveIntensity: 2.5,
-    })
-    this._sun = new THREE.Mesh(geo, mat)
-    this._group.add(this._sun)
+    const sunTex = load('/textures/planets/sun.jpg')
 
-    // Point light from sun
-    const light = new THREE.PointLight(0xfff4cc, 3, 60)
+    this._sunUni = {
+      uTex:  { value: sunTex },
+      uTime: { value: 0 },
+    }
+
+    const mat = new THREE.ShaderMaterial({
+      uniforms:       this._sunUni,
+      vertexShader:   SUN_VERT,
+      fragmentShader: SUN_FRAG,
+    })
+
+    const geo  = new THREE.SphereGeometry(0.7, 64, 64)
+    this._sunMesh = new THREE.Mesh(geo, mat)
+    this._group.add(this._sunMesh)
+
+    // Corona halos — additive blending spheres
+    const halos = [
+      { r: 0.85, opacity: 0.18, color: 0xffcc44 },
+      { r: 1.05, opacity: 0.10, color: 0xff9922 },
+      { r: 1.35, opacity: 0.05, color: 0xff6600 },
+      { r: 1.80, opacity: 0.025, color: 0xff4400 },
+    ]
+    halos.forEach(h => {
+      const m = new THREE.MeshBasicMaterial({
+        color:       h.color,
+        transparent: true,
+        opacity:     h.opacity,
+        blending:    THREE.AdditiveBlending,
+        depthWrite:  false,
+        side:        THREE.BackSide,
+      })
+      this._group.add(new THREE.Mesh(new THREE.SphereGeometry(h.r, 32, 32), m))
+    })
+
+    // Strong point light from sun
+    const light = new THREE.PointLight(0xfff5cc, 4, 80)
     this._group.add(light)
 
-    // Ambient so dark side isn't pitch black
-    const ambient = new THREE.AmbientLight(0x111133, 1.2)
-    this._group.add(ambient)
-
-    // Sun corona halo
-    const haloGeo = new THREE.SphereGeometry(0.85, 32, 32)
-    const haloMat = new THREE.MeshBasicMaterial({
-      color: 0xffcc33,
-      transparent: true,
-      opacity: 0.12,
-      side: THREE.BackSide,
-    })
-    this._group.add(new THREE.Mesh(haloGeo, haloMat))
+    // Soft ambient so planet dark sides aren't pitch black
+    this._group.add(new THREE.AmbientLight(0x111133, 0.6))
   }
 
+  // ── Planets ────────────────────────────────────────────────────────────────
   _buildPlanets() {
-    PLANETS.forEach((p, i) => {
-      // Orbit ring
-      const orbitGeo = new THREE.RingGeometry(p.distance - 0.01, p.distance + 0.01, 128)
+    PLANETS.forEach(p => {
+      // ── Orbit ring
+      const orbitGeo = new THREE.RingGeometry(p.distance - 0.008, p.distance + 0.008, 180)
       const orbitMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
-        transparent: true,
-        opacity: 0.07,
-        side: THREE.DoubleSide,
+        color: 0xffffff, transparent: true, opacity: 0.06,
+        side: THREE.DoubleSide, depthWrite: false,
       })
-      const orbit = new THREE.Mesh(orbitGeo, orbitMat)
-      orbit.rotation.x = Math.PI / 2
-      this._group.add(orbit)
+      const orbitMesh = new THREE.Mesh(orbitGeo, orbitMat)
+      orbitMesh.rotation.x = Math.PI / 2
+      this._group.add(orbitMesh)
 
-      // Pivot for orbital animation
+      // ── Pivot
       const pivot = new THREE.Object3D()
+      pivot.rotation.y = Math.random() * Math.PI * 2
       this._group.add(pivot)
 
-      // Planet mesh
-      const geo = new THREE.SphereGeometry(p.radius, 32, 32)
+      // ── Planet body
+      const tex = load(p.tex)
       const mat = new THREE.MeshStandardMaterial({
-        color:    new THREE.Color(p.color),
-        emissive: new THREE.Color(p.emissive),
-        emissiveIntensity: 0.4,
-        roughness: 0.85,
-        metalness: 0.1,
+        map:       tex,
+        roughness: p.roughness,
+        metalness: p.metalness,
       })
-      const mesh = new THREE.Mesh(geo, mat)
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(p.radius, 64, 64), mat)
       mesh.position.x = p.distance
+      mesh.rotation.y = Math.random() * Math.PI * 2
+      pivot.add(mesh)
 
-      // Saturn rings
-      if (p.name === 'Saturn') {
-        const ringGeo = new THREE.RingGeometry(p.radius * 1.5, p.radius * 2.5, 64)
-        const ringMat = new THREE.MeshBasicMaterial({
-          color: 0xd4c47a,
+      // ── Atmosphere rim
+      if (p.atmosphere) {
+        const aGeo = new THREE.SphereGeometry(p.radius * 1.18, 32, 32)
+        const aMat = new THREE.ShaderMaterial({
+          uniforms: {
+            uColor:   { value: p.atmosphere.color },
+            uOpacity: { value: p.atmosphere.opacity },
+          },
+          vertexShader:   ATMO_VERT,
+          fragmentShader: ATMO_FRAG,
+          transparent:    true,
+          depthWrite:     false,
+          blending:       THREE.AdditiveBlending,
+          side:           THREE.FrontSide,
+        })
+        mesh.add(new THREE.Mesh(aGeo, aMat))
+      }
+
+      // ── Earth cloud layer
+      if (p.clouds) {
+        const cloudTex = load(p.clouds)
+        const cloudMat = new THREE.MeshStandardMaterial({
+          map:         cloudTex,
+          alphaMap:    cloudTex,
           transparent: true,
-          opacity: 0.6,
-          side: THREE.DoubleSide,
+          opacity:     0.65,
+          depthWrite:  false,
+        })
+        const cloudMesh = new THREE.Mesh(
+          new THREE.SphereGeometry(p.radius * 1.02, 64, 64), cloudMat
+        )
+        mesh.add(cloudMesh)
+        this._clouds.push(cloudMesh)
+      }
+
+      // ── Saturn rings
+      if (p.rings) {
+        const ringTex = buildRingTexture()
+        const ringGeo = new THREE.RingGeometry(p.radius * 1.3, p.radius * 2.6, 128)
+
+        // Map UVs radially so texture maps inner→outer
+        const pos = ringGeo.attributes.position
+        const uv  = ringGeo.attributes.uv
+        for (let i = 0; i < pos.count; i++) {
+          const x = pos.getX(i), y = pos.getY(i)
+          const r = Math.sqrt(x * x + y * y)
+          const t = (r - p.radius * 1.3) / (p.radius * 2.6 - p.radius * 1.3)
+          uv.setXY(i, t, 0.5)
+        }
+        uv.needsUpdate = true
+
+        const ringMat = new THREE.MeshBasicMaterial({
+          map:         ringTex,
+          transparent: true,
+          depthWrite:  false,
+          side:        THREE.DoubleSide,
         })
         const ring = new THREE.Mesh(ringGeo, ringMat)
-        ring.rotation.x = Math.PI / 2.8
+        ring.rotation.x = Math.PI / 2.2
         mesh.add(ring)
       }
 
-      // Earth: add a simple moon
-      if (p.name === 'Earth') {
+      // ── Moon (Earth)
+      if (p.moon) {
+        const moonTex  = load('/textures/planets/moon.jpg')
+        const moonMat  = new THREE.MeshStandardMaterial({
+          map: moonTex, roughness: 0.95, metalness: 0.0,
+        })
+        const moonMesh = new THREE.Mesh(
+          new THREE.SphereGeometry(0.045, 32, 32), moonMat
+        )
+        moonMesh.position.x = p.radius * 2.8
         const moonPivot = new THREE.Object3D()
+        moonPivot.add(moonMesh)
         mesh.add(moonPivot)
-        const moonGeo = new THREE.SphereGeometry(0.04, 16, 16)
-        const moonMat = new THREE.MeshStandardMaterial({ color: 0xaaaaaa, roughness: 1 })
-        const moon = new THREE.Mesh(moonGeo, moonMat)
-        moon.position.x = 0.35
-        moonPivot.add(moon)
         this._moonPivot = moonPivot
       }
 
-      pivot.add(mesh)
-
-      // Random start angle
-      pivot.rotation.y = Math.random() * Math.PI * 2
-
-      this._pivots.push({ pivot, speed: p.speed, mesh, data: p })
+      this._pivots.push({ pivot, mesh, speed: p.speed })
     })
   }
 
+  // ── Starfield ──────────────────────────────────────────────────────────────
   _buildStarfield() {
-    // Background stars for solar system view
-    const count = 3000
+    const count = 4000
     const pos   = new Float32Array(count * 3)
+    const col   = new Float32Array(count * 3)
     for (let i = 0; i < count; i++) {
-      const r     = 80 + Math.random() * 120
+      const r     = 90 + Math.random() * 120
       const theta = Math.random() * Math.PI * 2
       const phi   = Math.acos(2 * Math.random() - 1)
       pos[i * 3]     = r * Math.sin(phi) * Math.cos(theta)
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta)
       pos[i * 3 + 2] = r * Math.cos(phi)
+
+      // Slight color variation — white/blue/warm
+      const t = Math.random()
+      col[i * 3]     = 0.8 + t * 0.2
+      col[i * 3 + 1] = 0.8 + (1 - t) * 0.1
+      col[i * 3 + 2] = 0.9 + t * 0.1
     }
     const geo = new THREE.BufferGeometry()
     geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
-    const mat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25, sizeAttenuation: true })
+    geo.setAttribute('color',    new THREE.BufferAttribute(col, 3))
+    const mat = new THREE.PointsMaterial({
+      size: 0.2, sizeAttenuation: true,
+      vertexColors: true, transparent: true,
+    })
     this._group.add(new THREE.Points(geo, mat))
   }
 
-  show() {
-    this._group.visible = true
-  }
-
-  hide() {
-    this._group.visible = false
-  }
+  // ── Public API ─────────────────────────────────────────────────────────────
+  show()            { this._group.visible = true  }
+  hide()            { this._group.visible = false }
+  setVisible(v)     { this._group.visible = v     }
 
   update(elapsed) {
     if (!this._group.visible) return
 
-    // Rotate sun
-    this._sun.rotation.y = elapsed * 0.2
+    // Sun animation
+    if (this._sunUni) this._sunUni.uTime.value = elapsed
+    if (this._sunMesh) this._sunMesh.rotation.y = elapsed * 0.05
 
-    // Orbit planets
-    this._pivots.forEach(({ pivot, speed }) => {
-      pivot.rotation.y += speed * 0.005
+    // Planets orbit + self-rotation
+    this._pivots.forEach(({ pivot, mesh, speed }) => {
+      pivot.rotation.y += speed * 0.004
+      mesh.rotation.y  += speed * 0.008
     })
 
-    // Moon orbit
-    if (this._moonPivot) {
-      this._moonPivot.rotation.y += 0.02
-    }
+    // Clouds rotate slightly faster than planet
+    this._clouds.forEach(c => { c.rotation.y += 0.0004 })
+
+    // Moon
+    if (this._moonPivot) this._moonPivot.rotation.y += 0.015
   }
 }
