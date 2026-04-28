@@ -74,12 +74,21 @@ function drawNarration(ctx, text, t, hint) {
   ctx.fillText(l1, 10, by + 11)
   if (l2) ctx.fillText(l2, 10, by + 21)
 
-  // Blinking advance hint (right side)
-  if (hint && Math.floor(t * 1.6) % 2 === 0) {
-    ctx.fillStyle = '#445577'
+  // Advance hint: bright when ready, dim pulsing "..." when waiting
+  if (hint) {
+    // Ready: bright blinking text
+    const blink = Math.floor(t * 1.8) % 2 === 0
+    ctx.fillStyle = blink ? '#7799cc' : '#3a4a66'
     ctx.font      = '5px "Courier New", monospace'
     ctx.textAlign = 'right'
     ctx.fillText(hint, 314, by + 22)
+  } else if (text.length > 0) {
+    // Still waiting: dim pulsing dots
+    const dots = '.'.repeat(1 + Math.floor(t * 2) % 3)
+    ctx.fillStyle = `rgba(60,80,110,${0.3 + 0.2 * Math.abs(Math.sin(t * 2))})`
+    ctx.font      = '6px "Courier New", monospace'
+    ctx.textAlign = 'right'
+    ctx.fillText(dots, 314, by + 22)
   }
 }
 
@@ -143,7 +152,7 @@ function buildScenes() {
     {
       bg:       bgRoom,
       narration: 'Todo empezó con nuestro amigo Adolfo...',
-      minT:     3.6,
+      minT:     2.8,
       draw(ctx, t) {
         // Adolfo walks in from the left
         const ax = Math.min(72, -28 + (t / 1.1) * 100)
@@ -162,7 +171,7 @@ function buildScenes() {
     {
       bg:       bgRoom,
       narration: 'Me habló de ti y me pasó tu contacto.',
-      minT:     3.2,
+      minT:     2.2,
       draw(ctx, t) {
         drawAdolfo(ctx, 64, G)
         drawRodrigo(ctx, 192, G, 'phone')
@@ -177,7 +186,7 @@ function buildScenes() {
     {
       bg:       bgPhone,
       narration: 'Así que te mandé un mensaje...',
-      minT:     5.5,
+      minT:     4.8,
       draw(ctx, t) {
         if (t > 0.8)  drawChatMessage(ctx, 'Hola :)',            'right', 54)
         if (t > 2.1)  drawChatMessage(ctx, 'Hola! quién eres?',  'left',  72)
@@ -190,7 +199,7 @@ function buildScenes() {
     {
       bg:       bgNight,
       narration: 'Empezamos a hablar, a conocernos...',
-      minT:     4.8,
+      minT:     3.8,
       draw(ctx, t) {
         drawRodrigo(ctx, 98,  G, 'stand')
         drawMar(ctx,     222, G, 'stand')
@@ -207,7 +216,7 @@ function buildScenes() {
     {
       bg:       bgNight,
       narration: 'Descubrimos que pensábamos y sentíamos igual.',
-      minT:     3.2,
+      minT:     2.5,
       draw(ctx, t) {
         drawRodrigo(ctx, 118, G, 'happy')
         drawMar(ctx,     202, G, 'happy')
@@ -225,7 +234,7 @@ function buildScenes() {
     {
       bg:       bgSunset,
       narration: 'Y llegó nuestro primer beso...',
-      minT:     4.8,
+      minT:     3.2,
       draw(ctx, t) {
         // Characters drift toward each other
         const rX = 130 + Math.min(13, t * 13)
@@ -265,7 +274,7 @@ function buildScenes() {
     {
       bg:       bgGalaxy,
       narration: 'Desde entonces, todo ha sido perfecto. ♥',
-      minT:     4.2,
+      minT:     3.5,
       isLast:   true,
       draw(ctx, t) {
         drawRodrigo(ctx, 120, G, 'happy')

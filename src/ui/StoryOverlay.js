@@ -22,18 +22,22 @@ export class StoryOverlay {
       transition:     'opacity 0.8s ease',
     })
 
-    // ── 2D canvas (pixel art resolution scaled up) ─────────────────────────────
+    // ── 2D canvas — scale by devicePixelRatio so text is crisp on HiDPI screens ──
     this.canvas = document.createElement('canvas')
-    // Internal resolution: 320×180 (16:9 pixel art)
-    this.canvas.width  = 320
-    this.canvas.height = 180
+    const dpr = Math.min(window.devicePixelRatio || 1, 3)
+    // Logical pixel art resolution: 320×180. Physical: 320*dpr × 180*dpr.
+    this.canvas.width  = 320 * dpr
+    this.canvas.height = 180 * dpr
     Object.assign(this.canvas.style, {
-      width:           'min(90vw, 160vh)',   // keep 16:9
-      height:          'auto',
-      imageRendering:  'pixelated',          // crisp pixel art scaling
-      display:         'block',
+      width:          'min(90vw, 160vh)',
+      height:         'auto',
+      imageRendering: 'pixelated',        // Chrome/Edge
+      display:        'block',
     })
     this.ctx = this.canvas.getContext('2d')
+    // Scale so all drawing code still uses 0–320 × 0–180 logical coordinates
+    this.ctx.scale(dpr, dpr)
+    this._dpr = dpr
 
     // ── Skip button ────────────────────────────────────────────────────────────
     this._skip = document.createElement('button')
@@ -113,11 +117,10 @@ export class StoryOverlay {
 
   // ── Drawing helpers (used by future scene layers) ─────────────────────────
 
-  /** Clear canvas with background color */
+  /** Clear canvas with background color (uses logical 320×180 coords) */
   _clear(color = '#0a0a12') {
-    const { ctx } = this
-    ctx.fillStyle = color
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+    this.ctx.fillStyle = color
+    this.ctx.fillRect(0, 0, 320, 180)
   }
 
   /**
