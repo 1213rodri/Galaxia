@@ -13,6 +13,7 @@ import { SolarSystem }      from './solar/SolarSystem.js'
 import { AudioManager }     from './audio/AudioManager.js'
 import { IntroScreen }      from './ui/IntroScreen.js'
 import { SolarTransition }  from './ui/SolarTransition.js'
+import { StoryOverlay }    from './ui/StoryOverlay.js'
 
 const canvas = document.getElementById('galaxy-canvas')
 
@@ -34,9 +35,19 @@ new LensFlares(sceneManager.scene)
 const solarSystem   = new SolarSystem(sceneManager.scene)
 
 // ── Audio & UI ────────────────────────────────────────────────────────────────
-const audio          = new AudioManager()
+const audio           = new AudioManager()
 const solarTransition = new SolarTransition()
+const storyOverlay    = new StoryOverlay()
 new IntroScreen(audio)
+
+// ── Temp: press T to test story overlay ───────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (e.key === 't' || e.key === 'T') {
+    storyOverlay.show(() => {
+      storyOverlay.drawTestFrame()
+    })
+  }
+})
 
 // ── Galaxy objects show/hide ──────────────────────────────────────────────────
 function setGalaxyVisible(v) {
