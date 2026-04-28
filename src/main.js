@@ -40,11 +40,16 @@ const solarTransition = new SolarTransition()
 const storyOverlay    = new StoryOverlay()
 new IntroScreen(audio)
 
-// ── Temp: press T to test story overlay ───────────────────────────────────────
+// ── Temp: press T to cycle backgrounds in story overlay ──────────────────────
+let _testBgIdx = 0
 window.addEventListener('keydown', e => {
   if (e.key === 't' || e.key === 'T') {
-    storyOverlay.show(() => {
-      storyOverlay.drawTestFrame()
+    _testBgIdx = 0
+    storyOverlay.show(() => storyOverlay.drawTestFrame(0))
+    storyOverlay.onAdvance(() => {
+      _testBgIdx++
+      if (_testBgIdx >= 5) { storyOverlay.hide(); return }
+      storyOverlay.drawTestFrame(_testBgIdx)
     })
   }
 })

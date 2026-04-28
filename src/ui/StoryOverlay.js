@@ -1,4 +1,5 @@
 import { drawRodrigo, drawMar, drawAdolfo, drawBubble } from './PixelCharacters.js'
+import { bgRoom, bgPhone, bgNight, bgSunset, bgGalaxy, GROUND_Y } from './SceneBackgrounds.js'
 
 /**
  * StoryOverlay
@@ -140,47 +141,33 @@ export class StoryOverlay {
     ctx.fillText(text, x, y)
   }
 
-  /** Draw a test frame showing all three characters */
-  drawTestFrame() {
+  /**
+   * Preview all backgrounds + characters (cycle with click).
+   * bgIndex: 0=room, 1=phone, 2=night, 3=sunset, 4=galaxy
+   */
+  drawTestFrame(bgIndex = 0) {
     const { ctx } = this
-    this._clear('#0a0a12')
+    const BG = [bgRoom, bgPhone, bgNight, bgSunset, bgGalaxy]
+    BG[bgIndex % BG.length](ctx)
 
-    // Stars
-    const stars = [
-      [10,8],[30,20],[55,5],[80,15],[100,30],[130,10],[160,22],
-      [200,8],[230,18],[260,5],[290,12],[310,25],[45,40],[170,35],
-      [250,40],[75,55],[145,18],[305,50],[20,45],
-    ]
-    stars.forEach(([x, y]) => this._rect(x, y, 1, 1, '#ffffff'))
+    const g = GROUND_Y
+    const labels = ['bgRoom', 'bgPhone', 'bgNight', 'bgSunset', 'bgGalaxy']
 
-    // Ground strip
-    this._rect(0, 152, 320, 28, '#111a11')
-    for (let i = 0; i < 320; i += 5) this._rect(i, 151, 1, 2, '#1e3a1e')
+    if (bgIndex % BG.length !== 1) {
+      // Show characters on all backgrounds except the phone
+      drawAdolfo(ctx, 70, g)
+      drawRodrigo(ctx, 155, g, bgIndex === 2 ? 'phone' : 'stand')
+      drawMar(ctx, 240, g, bgIndex === 3 ? 'happy' : 'stand')
+    }
 
-    // Title
-    this._text('Personajes — prueba de sprites', 160, 20, {
+    // Label (which background)
+    this._text(labels[bgIndex % BG.length], 160, 14, {
       color: '#aabbdd', size: 6, align: 'center',
     })
-
-    // Adolfo (left)
-    const ground = 152
-    drawAdolfo(ctx, 55, ground)
-    drawBubble(ctx, 55 + 8, ground - 28 + 4, 'Adolfo', 'right')
-
-    // Rodrigo (center-left)
-    drawRodrigo(ctx, 130, ground, 'phone')
-    drawBubble(ctx, 130 + 8, ground - 28 + 4, 'Rodrigo', 'right')
-
-    // Mar (center-right)
-    drawMar(ctx, 210, ground, 'happy')
-    drawBubble(ctx, 210 - 8, ground - 26 + 4, 'Mar', 'left')
-
-    // Rodrigo happy (right, showing both poses)
-    drawRodrigo(ctx, 285, ground, 'happy')
-
-    // Hint
-    this._text('[ haz click para continuar ]', 160, 175, {
+    this._text(`${bgIndex + 1}/5 — click para ver el siguiente`, 160, 175, {
       color: '#445566', size: 5, align: 'center',
     })
+
+    this._bgIndex = bgIndex
   }
 }
