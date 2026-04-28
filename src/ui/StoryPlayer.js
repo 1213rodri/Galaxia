@@ -111,6 +111,34 @@ function floatHearts(ctx, t, defs, color) {
 function buildScenes() {
   return [
 
+    // ── 0. Welcome title card ─────────────────────────────────────────────────
+    {
+      bg:          bgGalaxy,
+      narration:   '',
+      minT:        2.6,
+      autoAdvance: 2.8,    // auto-advance after this many seconds
+      draw(ctx, t) {
+        // Title fades in
+        const titleAlpha = Math.min(1, t * 1.2)
+        ctx.globalAlpha  = titleAlpha
+        ctx.fillStyle    = '#f0eaff'
+        ctx.font         = '10px "Courier New", monospace'
+        ctx.textAlign    = 'center'
+        ctx.fillText('Bienvenida a nuestro mundo', 160, 78)
+        ctx.globalAlpha  = 1
+
+        // Subtitle appears at t > 0.9
+        if (t > 0.9) {
+          const subAlpha = Math.min(1, (t - 0.9) * 1.4)
+          ctx.globalAlpha = subAlpha
+          ctx.fillStyle   = '#9988cc'
+          ctx.font        = '6px "Courier New", monospace'
+          ctx.fillText('nuestra historia, para ti  ♥', 160, 96)
+          ctx.globalAlpha = 1
+        }
+      },
+    },
+
     // ── 1. Adolfo tells Rodrigo about Mar ────────────────────────────────────
     {
       bg:       bgRoom,
@@ -279,6 +307,9 @@ export class StoryPlayer {
     this._canAdvance = false
   }
 
+  /** True while the story is showing */
+  get isActive() { return this._running }
+
   /** Start the story from scene 0 */
   play() {
     this._running = true
@@ -298,10 +329,17 @@ export class StoryPlayer {
     this._idx        = idx
     this._startT     = performance.now()
     this._canAdvance = false
-    const minT = this._scenes[idx].minT ?? 2.0
+    const scene = this._scenes[idx]
+    const minT  = scene.minT ?? 2.0
     setTimeout(() => {
       if (this._idx === idx) this._canAdvance = true
     }, minT * 1000)
+    // Auto-advance scenes (e.g. welcome title card)
+    if (scene.autoAdvance) {
+      setTimeout(() => {
+        if (this._idx === idx) this._nextScene()
+      }, scene.autoAdvance * 1000)
+    }
   }
 
   _nextScene() {

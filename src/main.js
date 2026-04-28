@@ -42,9 +42,46 @@ const storyOverlay    = new StoryOverlay()
 const storyPlayer     = new StoryPlayer(storyOverlay)
 new IntroScreen(audio)
 
-// ── Temp: press T to trigger the full story (will be replaced by planet click in Part 5)
-window.addEventListener('keydown', e => {
-  if (e.key === 't' || e.key === 'T') storyPlayer.play()
+// ── Planet click detection ─────────────────────────────────────────────────────
+const raycaster  = new THREE.Raycaster()
+const mouse2d    = new THREE.Vector2()
+let _inSolar     = false       // true while in solar mode
+let _mouseDownXY = null        // used to distinguish clicks from drags
+
+canvas.addEventListener('mousedown', e => {
+  _mouseDownXY = { x: e.clientX, y: e.clientY }
+})
+
+canvas.addEventListener('mouseup', e => {
+  if (!_mouseDownXY || !_inSolar || storyPlayer.isActive) {
+    _mouseDownXY = null
+    return
+  }
+  // Only fire if this was a real click (not a drag)
+  const dx = e.clientX - _mouseDownXY.x
+  const dy = e.clientY - _mouseDownXY.y
+  _mouseDownXY = null
+  if (dx * dx + dy * dy > 25) return   // >5px movement = drag
+
+  const rect = canvas.getBoundingClientRect()
+  mouse2d.x  =  ((e.clientX - rect.left) / rect.width)  * 2 - 1
+  mouse2d.y  = -((e.clientY - rect.top)  / rect.height) * 2 + 1
+  raycaster.setFromCamera(mouse2d, cameraManager.camera)
+
+  const hits = raycaster.intersectObjects(solarSystem.getPlanetMeshes())
+  if (hits.length > 0) storyPlayer.play()
+})
+
+// Touch support (mobile)
+canvas.addEventListener('touchend', e => {
+  if (!_inSolar || storyPlayer.isActive) return
+  const touch = e.changedTouches[0]
+  const rect  = canvas.getBoundingClientRect()
+  mouse2d.x   =  ((touch.clientX - rect.left) / rect.width)  * 2 - 1
+  mouse2d.y   = -((touch.clientY - rect.top)  / rect.height) * 2 + 1
+  raycaster.setFromCamera(mouse2d, cameraManager.camera)
+  const hits = raycaster.intersectObjects(solarSystem.getPlanetMeshes())
+  if (hits.length > 0) storyPlayer.play()
 })
 
 // ── Galaxy objects show/hide ──────────────────────────────────────────────────
@@ -59,6 +96,7 @@ function setGalaxyVisible(v) {
 
 // ── State machine: galaxy ↔ solar ─────────────────────────────────────────────
 cameraManager.onEnterSolar = () => {
+  _inSolar = true
   solarTransition.show('Déjame llevarte a nuestro sistema solar...', () => {
     setGalaxyVisible(false)
     solarSystem.show()
@@ -80,6 +118,7 @@ cameraManager.onEnterSolar = () => {
 }
 
 cameraManager.onExitSolar = () => {
+  _inSolar = false
   solarTransition.show('Regresando a la galaxia...', () => {
     solarSystem.hide()
     setGalaxyVisible(true)

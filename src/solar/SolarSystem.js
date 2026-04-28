@@ -353,6 +353,11 @@ export class SolarSystem {
   hide()            { this._group.visible = false }
   setVisible(v)     { this._group.visible = v     }
 
+  /** Returns all 8 planet meshes — used for raycasting on click */
+  getPlanetMeshes() {
+    return this._pivots.map(p => p.mesh)
+  }
+
   getEarthPosition() {
     const pos = new THREE.Vector3()
     if (this._earthMesh) this._earthMesh.getWorldPosition(pos)
