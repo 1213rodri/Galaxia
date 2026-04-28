@@ -1,7 +1,8 @@
+import { drawRodrigo, drawMar, drawAdolfo, drawBubble } from './PixelCharacters.js'
+
 /**
  * StoryOverlay
  * Full-screen 2D canvas overlay for the pixel art story animation.
- * Part 1: base container — show/hide with fade, skip button, canvas ready.
  */
 export class StoryOverlay {
   constructor() {
@@ -139,29 +140,47 @@ export class StoryOverlay {
     ctx.fillText(text, x, y)
   }
 
-  /** Draw a test frame so we can verify the overlay works */
+  /** Draw a test frame showing all three characters */
   drawTestFrame() {
+    const { ctx } = this
     this._clear('#0a0a12')
-    // Starry background dots
+
+    // Stars
     const stars = [
       [10,8],[30,20],[55,5],[80,15],[100,30],[130,10],[160,22],
       [200,8],[230,18],[260,5],[290,12],[310,25],[45,40],[170,35],
+      [250,40],[75,55],[145,18],[305,50],[20,45],
     ]
     stars.forEach(([x, y]) => this._rect(x, y, 1, 1, '#ffffff'))
 
-    // Ground
-    this._rect(0, 155, 320, 25, '#1a2a1a')
-    // Grass highlights
-    for (let i = 0; i < 320; i += 6) {
-      this._rect(i, 154, 1, 2, '#2a4a2a')
-    }
+    // Ground strip
+    this._rect(0, 152, 320, 28, '#111a11')
+    for (let i = 0; i < 320; i += 5) this._rect(i, 151, 1, 2, '#1e3a1e')
 
-    // Label
-    this._text('Bienvenida a nuestro mundo', 160, 100, {
-      color: '#d0d8ff', size: 8, align: 'center'
+    // Title
+    this._text('Personajes — prueba de sprites', 160, 20, {
+      color: '#aabbdd', size: 6, align: 'center',
     })
-    this._text('[ haz click para continuar ]', 160, 170, {
-      color: '#667799', size: 5, align: 'center'
+
+    // Adolfo (left)
+    const ground = 152
+    drawAdolfo(ctx, 55, ground)
+    drawBubble(ctx, 55 + 8, ground - 28 + 4, 'Adolfo', 'right')
+
+    // Rodrigo (center-left)
+    drawRodrigo(ctx, 130, ground, 'phone')
+    drawBubble(ctx, 130 + 8, ground - 28 + 4, 'Rodrigo', 'right')
+
+    // Mar (center-right)
+    drawMar(ctx, 210, ground, 'happy')
+    drawBubble(ctx, 210 - 8, ground - 26 + 4, 'Mar', 'left')
+
+    // Rodrigo happy (right, showing both poses)
+    drawRodrigo(ctx, 285, ground, 'happy')
+
+    // Hint
+    this._text('[ haz click para continuar ]', 160, 175, {
+      color: '#445566', size: 5, align: 'center',
     })
   }
 }
