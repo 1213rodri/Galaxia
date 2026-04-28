@@ -14,6 +14,7 @@ import { AudioManager }     from './audio/AudioManager.js'
 import { IntroScreen }      from './ui/IntroScreen.js'
 import { SolarTransition }  from './ui/SolarTransition.js'
 import { StoryOverlay }    from './ui/StoryOverlay.js'
+import { StoryPlayer }    from './ui/StoryPlayer.js'
 
 const canvas = document.getElementById('galaxy-canvas')
 
@@ -38,20 +39,12 @@ const solarSystem   = new SolarSystem(sceneManager.scene)
 const audio           = new AudioManager()
 const solarTransition = new SolarTransition()
 const storyOverlay    = new StoryOverlay()
+const storyPlayer     = new StoryPlayer(storyOverlay)
 new IntroScreen(audio)
 
-// ── Temp: press T to cycle backgrounds in story overlay ──────────────────────
-let _testBgIdx = 0
+// ── Temp: press T to trigger the full story (will be replaced by planet click in Part 5)
 window.addEventListener('keydown', e => {
-  if (e.key === 't' || e.key === 'T') {
-    _testBgIdx = 0
-    storyOverlay.show(() => storyOverlay.drawTestFrame(0))
-    storyOverlay.onAdvance(() => {
-      _testBgIdx++
-      if (_testBgIdx >= 5) { storyOverlay.hide(); return }
-      storyOverlay.drawTestFrame(_testBgIdx)
-    })
-  }
+  if (e.key === 't' || e.key === 'T') storyPlayer.play()
 })
 
 // ── Galaxy objects show/hide ──────────────────────────────────────────────────
