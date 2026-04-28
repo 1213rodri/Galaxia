@@ -42,6 +42,9 @@ function drawHeart(ctx, cx, cy, color) {
  * Text types out at CPS chars/second. hint blinks when player can advance.
  */
 function drawNarration(ctx, text, t, hint) {
+  // Skip the narration box entirely when there is no text (e.g. title card)
+  if (!text) return
+
   const by = 154, bh = 26, W = 320
 
   ctx.globalAlpha = 0.92
@@ -152,7 +155,7 @@ function buildScenes() {
     {
       bg:       bgRoom,
       narration: 'Todo empezó con nuestro amigo Adolfo...',
-      minT:     2.8,
+      minT:     4.2,   // second bubble appears at t>2.8; give 1.4s to read it
       draw(ctx, t) {
         // Adolfo walks in from the left
         const ax = Math.min(72, -28 + (t / 1.1) * 100)
@@ -171,7 +174,7 @@ function buildScenes() {
     {
       bg:       bgRoom,
       narration: 'Me habló de ti y me pasó tu contacto.',
-      minT:     2.2,
+      minT:     3.2,   // bubble at t>2.1; give 1.1s to read it
       draw(ctx, t) {
         drawAdolfo(ctx, 64, G)
         drawRodrigo(ctx, 192, G, 'phone')
@@ -378,7 +381,7 @@ export class StoryPlayer {
 
     // 2. Narration box (under characters)
     const hint = this._canAdvance
-      ? (scene.isLast ? '▼ volver a las estrellas' : '▼ click para continuar')
+      ? (scene.isLast ? '▼ cerrar historia' : '▼ click para continuar')
       : null
     drawNarration(ctx, scene.narration, t, hint)
 
